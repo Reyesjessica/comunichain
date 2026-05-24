@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comunichain - Transparencia Comunitaria</title>
+  <script src="https://unpkg.com/@simplewebauthn/browser@9/dist/bundle/index.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5; color: #1a1a2e; line-height: 1.6;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+    nav {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff; padding: 16px 0; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    nav .container { display: flex; justify-content: space-between; align-items: center; }
+    nav .logo { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    nav .logo span { color: #4facfe; }
+    nav .nav-links { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    nav .nav-links button {
+      background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+      padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 14px;
+      transition: all .2s;
+    }
+    nav .nav-links button:hover { background: rgba(255,255,255,0.2); }
+    nav .nav-links button.primary { background: #4facfe; border-color: #4facfe; color: #fff; }
+    nav .nav-links button.primary:hover { background: #3d8ee6; }
+    nav .nav-links button.danger { background: #ff4757; border-color: #ff4757; }
+    nav .nav-links button.danger:hover { background: #e8414f; }
+    nav .nav-links button.nav-active {
+      background: #4facfe; border-color: #4facfe; color: #fff; font-weight: 700;
+      box-shadow: 0 0 0 2px rgba(79,172,254,0.3);
+    }
+    .user-badge {
+      background: rgba(79,172,254,0.2); padding: 4px 14px; border-radius: 20px;
+      font-size: 13px; border: 1px solid rgba(79,172,254,0.3);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #fff; padding: 80px 0 60px; text-align: center;
+    }
+    .hero h1 { font-size: 42px; margin-bottom: 16px; }
+    .hero h1 span { color: #4facfe; }
+    .hero p { font-size: 18px; opacity: .85; max-width: 700px; margin: 0 auto 30px; }
+    .hero .stats {
+      display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-top: 40px;
+    }
+    .hero .stat-item { text-align: center; }
+    .hero .stat-item .num { font-size: 32px; font-weight: 700; color: #4facfe; }
+    .hero .stat-item .label { font-size: 14px; opacity: .7; }
+
+    .section { padding: 60px 0; }
+    .section-title { font-size: 28px; margin-bottom: 30px; text-align: center; }
+    .section-title span { color: #4facfe; }
+
+    .card {
+      background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform .2s;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    .card h3 { font-size: 18px; margin-bottom: 8px; }
+    .card p { color: #555; font-size: 14px; }
+    .card .meta { font-size: 12px; color: #999; margin-top: 12px; }
+    .card .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    }
+    .badge-pendiente { background: #fff3cd; color: #856404; }
+    .badge-progreso { background: #cce5ff; color: #004085; }
+    .badge-completado { background: #d4edda; color: #155724; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 4px; color: #333; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px;
+      font-size: 14px; transition: border .2s;
+    }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #4facfe; }
+
+    .btn {
+      background: #4facfe; color: #fff; border: none; padding: 10px 24px;
+      border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;
+      transition: all .2s;
+    }
+    .btn:hover { background: #3d8ee6; }
+    .btn-outline { background: transparent; border: 1px solid #4facfe; color: #4facfe; }
+    .btn-outline:hover { background: #4facfe; color: #fff; }
+    .btn-success { background: #2ed573; }
+    .btn-success:hover { background: #26bf65; }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+    .btn-block { width: 100%; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .hidden { display: none !important; }
+
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 200; display: flex;
+      justify-content: center; align-items: center;
+    }
+    .modal {
+      background: #fff; border-radius: 16px; width: 90%; max-width: 600px;
+      padding: 30px; max-height: 90vh; overflow-y: auto;
+    }
+    .modal h2 { margin-bottom: 20px; }
+    .modal .close-btn {
+      float: right; background: none; border: none; font-size: 24px;
+      cursor: pointer; color: #999;
+    }
+
+    .auth-panel {
+      max-width: 400px; margin: 0 auto; text-align: center;
+    }
+    .auth-panel .bio-btn {
+      width: 100%; padding: 16px; font-size: 16px; margin: 8px 0;
+      background: #1a1a2e; border: none; border-radius: 12px; color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px; transition: all .2s;
+    }
+    .auth-panel .bio-btn:hover { background: #16213e; }
+    .auth-panel .bio-btn svg { width: 24px; height: 24px; }
+
+    .alert {
+      padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;
+    }
+    .alert-success { background: #d4edda; color: #155724; }
+    .alert-error { background: #f8d7da; color: #721c24; }
+    .alert-info { background: #cce5ff; color: #004085; }
+
+    .foto-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 12px;
+    }
+    .foto-grid img {
+      width: 100%; height: 120px; object-fit: cover; border-radius: 8px; cursor: pointer;
+    }
+
+    .progress-bar {
+      width: 100%; height: 8px; background: #e9ecef; border-radius: 4px; margin: 10px 0; overflow: hidden;
+    }
+    .progress-bar .fill {
+      height: 100%; background: linear-gradient(90deg, #4facfe, #2ed573); border-radius: 4px;
+      transition: width .5s;
+    }
+
+    .transaccion-item {
+      padding: 10px; border-left: 3px solid #4facfe; margin-bottom: 8px;
+      background: #f8f9fa; border-radius: 0 8px 8px 0; font-size: 13px;
+    }
+    .transaccion-item .tx-hash {
+      font-family: monospace; color: #4facfe; font-size: 11px;
+    }
+
+    .gobierno-proyecto-card {
+      border-left: 4px solid #4facfe; padding-left: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 28px; }
+      nav .nav-links { gap: 6px; }
+      nav .nav-links button { font-size: 12px; padding: 6px 12px; }
+      .hero .stats { gap: 20px; }
+      .hero .stat-item .num { font-size: 24px; }
+    }
+
+    .loading {
+      display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%; border-top-color: #fff; animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .tab-bar {
+      display: flex; gap: 4px; margin-bottom: 24px; background: #fff;
+      padding: 4px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .tab-bar button {
+      flex: 1; padding: 10px; border: none; background: transparent; border-radius: 8px;
+      cursor: pointer; font-size: 14px; font-weight: 600; color: #666; transition: all .2s;
+    }
+    .tab-bar button.active { background: #4facfe; color: #fff; }
+    .tab-bar button:hover:not(.active) { background: #f0f2f5; }
+
+    .wallet-connected { color: #2ed573; display: flex; align-items: center; gap: 6px; }
+    .wallet-disconnected { color: #ff4757; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="logo">&#x26A1; Comun<span>ichain</span></div>
+    <div class="nav-links" id="navLinks">
+      <button id="navInicio" class="nav-active" onclick="showView('inicio')">Inicio</button>
+      <button id="navComunidad" class="hidden" onclick="showView('comunidad')">Mi Comunidad</button>
+      <button id="navGobierno" class="hidden" onclick="showView('gobierno')">Gobierno</button>
+      <span id="userBadge" class="user-badge hidden"></span>
+      <button id="btnAuth" class="primary" onclick="showView('auth')">Conectar</button>
+      <button id="btnLogout" class="hidden danger" onclick="logout()">Salir</button>
+    </div>
+  </div>
+</nav>
+
+<div id="viewInicio" class="section">
+  <div class="hero">
+    <div class="container">
+      <h1>Bienvenido a <span>Comunichain</span></h1>
+      <p>La plataforma que usa blockchain de Stellar para garantizar transparencia total en los fondos destinados a proyectos comunitarios. Sin intermediarios, con trazabilidad real.</p>
+      <button class="btn" onclick="showView('auth')" style="font-size:18px;padding:14px 32px;">Comenzar ahora</button>
+      <div class="stats" id="heroStats">
+        <div class="stat-item"><div class="num">-</div><div class="label">Comunidades</div></div>
+        <div class="stat-item"><div class="num">-</div><div class="label">Proyectos</div></div>
+        <div class="stat-item"><div class="num">-</div><div class="label">Fondeado</div></div>
+        <div class="stat-item"><div class="num">-</div><div class="label">% Transparencia</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="grid-3" style="margin-top:40px;">
+      <div class="card" style="text-align:center;padding:40px 24px;">
+        <div style="font-size:48px;margin-bottom:12px;">&#x1F465;</div>
+        <h3>Para Comunidades</h3>
+        <p>Registra tu comunidad, crea proyectos con metas claras y recibe fondeo directo del gobierno. Cada transacción queda registrada en la blockchain.</p>
+      </div>
+      <div class="card" style="text-align:center;padding:40px 24px;">
+        <div style="font-size:48px;margin-bottom:12px;">&#x1F3DB;&#xFE0F;</div>
+        <h3>Para el Gobierno</h3>
+        <p>Visualiza todos los proyectos en un solo lugar, fondea con confianza y da seguimiento en tiempo real al uso de los recursos públicos.</p>
+      </div>
+      <div class="card" style="text-align:center;padding:40px 24px;">
+        <div style="font-size:48px;margin-bottom:12px;">&#x1F50D;</div>
+        <h3>Transparencia Total</h3>
+        <p>Cada peso fondeado, cada avance y cada foto se registran en Stellar Soroban. Información inmutable y verificable por cualquier persona.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:40px;">
+      <h2 class="section-title">Proyectos <span>Recientes</span></h2>
+      <div id="proyectosRecientes" class="grid-3"></div>
+    </div>
+  </div>
+</div>
+
+<div id="viewAuth" class="section hidden">
+  <div class="container">
+    <div class="auth-panel">
+      <div style="font-size:64px;margin-bottom:16px;">&#x1F510;</div>
+      <h2 class="section-title">Conecta tu <span>Smart Wallet</span></h2>
+      <p style="margin-bottom:24px;color:#666;">
+        Usa tu huella digital, Face ID o PIN para crear o acceder a tu cuenta.<br>
+        Tu identidad digital está protegida con Passkeys (WebAuthn).
+      </p>
+
+      <div class="form-group" style="text-align:left;">
+        <label>Nombre de usuario</label>
+        <input type="text" id="authUsername" placeholder="Ej: mi_comunidad" style="text-align:center;">
+      </div>
+
+      <button class="bio-btn" onclick="register()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        Registrar con Passkey (biometr&iacute;a)
+      </button>
+
+      <div style="margin:20px 0;color:#999;font-size:13px;">&oacute; si ya tienes cuenta</div>
+
+      <button class="bio-btn" onclick="login()" style="background:#2ed573;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        Conectar con Passkey
+      </button>
+
+      <div id="authMsg" class="hidden" style="margin-top:16px;"></div>
+
+    </div>
+  </div>
+</div>
+
+<div id="viewRoleselect" class="section hidden">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:40px;">
+      <h2 class="section-title">Elige tu <span>Rol</span></h2>
+      <p style="color:#666;font-size:16px;">Selecciona c&oacute;mo quieres participar en Comunichain</p>
+    </div>
+    <div class="grid-2" style="max-width:700px;margin:0 auto;">
+      <div class="card" style="text-align:center;padding:40px 24px;cursor:pointer;" onclick="showView('comunidad')">
+        <div style="font-size:64px;margin-bottom:16px;">&#x1F465;</div>
+        <h3>Soy una <span style="color:#4facfe;">Comunidad</span></h3>
+        <p style="margin:12px 0;color:#666;">Registra tu comunidad, crea proyectos con metas de fondeo y recibe recursos del gobierno con total transparencia en blockchain.</p>
+        <button class="btn" style="margin-top:12px;">Registrarme como Comunidad</button>
+      </div>
+      <div class="card" style="text-align:center;padding:40px 24px;cursor:pointer;" onclick="registrarGobierno()">
+        <div style="font-size:64px;margin-bottom:16px;">&#x1F3DB;&#xFE0F;</div>
+        <h3>Soy una Entidad de <span style="color:#2ed573;">Gobierno</span></h3>
+        <p style="margin:12px 0;color:#666;">Visualiza todos los proyectos comunitarios, da seguimiento al uso de recursos y fondea proyectos directamente desde la plataforma.</p>
+        <button class="btn btn-success" style="margin-top:12px;">Registrarme como Gobierno</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="viewComunidad" class="section hidden">
+  <div class="container">
+    <div id="sinComunidad">
+      <h2 class="section-title">Registra tu <span>Comunidad</span></h2>
+      <div class="card" style="max-width:600px;margin:0 auto;">
+        <form id="formComunidad" onsubmit="registrarComunidad(event)">
+          <div class="form-group">
+            <label>Nombre de la comunidad *</label>
+            <input type="text" id="comNombre" required placeholder="Ej: Colonia San Miguel">
+          </div>
+          <div class="form-group">
+            <label>Direcci&oacute;n / Ubicaci&oacute;n</label>
+            <input type="text" id="comDireccion" placeholder="Calle, n&uacute;mero, localidad">
+          </div>
+          <div class="form-group">
+            <label>Descripci&oacute;n</label>
+            <textarea id="comDescripcion" rows="3" placeholder="Breve descripci&oacute;n de la comunidad"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Representante</label>
+            <input type="text" id="comRepresentante" placeholder="Nombre del representante">
+          </div>
+          <div class="form-group">
+            <label>Tel&eacute;fono</label>
+            <input type="tel" id="comTelefono" placeholder="N&uacute;mero de contacto" oninput="this.value=this.value.replace(/[^0-9+\-() ]/g,'')">
+          </div>
+          <button type="submit" class="btn btn-block">Registrar Comunidad en Blockchain</button>
+        </form>
+        <div id="comMsg" class="hidden" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <div id="conComunidad" class="hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <h2 class="section-title" style="margin:0;">
+          <span id="comNombreDisplay"></span>
+          <span style="font-size:14px;color:#666;font-weight:400;display:block;" id="comUbicacionDisplay"></span>
+        </h2>
+        <button class="btn" onclick="showCrearProyecto()">+ Nuevo Proyecto</button>
+      </div>
+
+      <div class="tab-bar">
+        <button class="active" onclick="comTab('proyectos',this)">Mis Proyectos</button>
+        <button onclick="comTab('perfil',this)">Perfil</button>
+        <button onclick="comTab('fondeos',this)">Fondeos Recibidos</button>
+      </div>
+
+      <div id="comTabProyectos">
+        <div id="misProyectos" class="grid-3"></div>
+        <div id="sinProyectosMsg" class="hidden" style="text-align:center;padding:40px;color:#999;">
+          A&uacute;n no has creado ning&uacute;n proyecto. &iexcl;Crea el primero!
+        </div>
+      </div>
+
+      <div id="comTabPerfil" class="hidden">
+        <div class="card" id="comPerfilCard"></div>
+      </div>
+
+      <div id="comTabFondeos" class="hidden">
+        <div id="comFondeosList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="viewGobierno" class="section hidden">
+  <div class="container">
+    <div id="gobiernoNoAuth" class="hidden">
+      <div class="card" style="max-width:500px;margin:40px auto;text-align:center;">
+        <div style="font-size:48px;margin-bottom:12px;">&#x1F46E;&#x200D;&#x2642;&#xFE0F;</div>
+        <h3>Acceso Gubernamental</h3>
+        <p style="margin:12px 0;color:#666;">Para acceder al panel de gobierno, tu cuenta debe estar registrada con este rol. Si eres una entidad gubernamental, haz clic abajo para vincular tu cuenta.</p>
+        <button class="btn btn-success" onclick="registrarGobierno()">Registrarme como Gobierno</button>
+        <div id="gobMsg" class="hidden" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <div id="gobiernoAuth">
+      <h2 class="section-title">Panel de <span>Gobierno</span></h2>
+      <div style="margin-bottom:20px;color:#666;">Monitoreo y fondeo de proyectos comunitarios</div>
+
+      <div class="tab-bar">
+        <button class="active" onclick="gobTab('proyectos',this)">Todos los Proyectos</button>
+        <button onclick="gobTab('fondeos',this)">Historial de Fondeo</button>
+        <button onclick="gobTab('estadisticas',this)">Estad&iacute;sticas</button>
+      </div>
+
+      <div id="gobTabProyectos">
+        <div id="gobProyectosList" class="grid-3"></div>
+      </div>
+
+      <div id="gobTabFondeos" class="hidden">
+        <div id="gobFondeosList"></div>
+      </div>
+
+      <div id="gobTabEstadisticas" class="hidden">
+        <div class="grid-2" id="gobEstadisticas"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modalOverlay" class="modal-overlay hidden" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal">
+    <button class="close-btn" onclick="cerrarModal()">&times;</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<div id="modalFoto" class="modal-overlay hidden" onclick="if(event.target===this)cerrarModalFoto()">
+  <div style="max-width:90vw;max-height:90vh;">
+    <button class="close-btn" onclick="cerrarModalFoto()" style="position:fixed;top:20px;right:30px;font-size:36px;color:#fff;background:none;border:none;cursor:pointer;z-index:300;">&times;</button>
+    <img id="fotoExpandida" src="" style="max-width:100%;max-height:90vh;border-radius:12px;" alt="">
+  </div>
+</div>
+
+<script>
+let token = localStorage.getItem('comunichain_token');
+let userData = null;
+let currentView = 'inicio';
+
+function $(id) { return document.getElementById(id); }
+
+function showMsg(el, msg, type) {
+  el.textContent = msg;
+  el.className = 'alert alert-' + type + ' hidden';
+  requestAnimationFrame(() => el.classList.remove('hidden'));
+}
+
+function hideMsg(el) {
+  el.classList.add('hidden');
+}
+
+function validateForm(fields) {
+  for (const f of fields) {
+    const el = typeof f === 'string' ? $(f) : f;
+    if (!el) continue;
+    const val = typeof el.value === 'string' ? el.value.trim() : el.value;
+    if (el.hasAttribute('required') && !val) {
+      showMsg($('comMsg'), 'Completa todos los campos obligatorios', 'error');
+      el.focus();
+      return false;
+    }
+    if (el.type === 'number' && val) {
+      const num = parseFloat(val);
+      const min = parseFloat(el.getAttribute('min')) || 0;
+      if (num <= 0 || isNaN(num)) {
+        showMsg($('comMsg'), 'El valor debe ser mayor a 0', 'error');
+        el.focus();
+        return false;
+      }
+    }
+    if (el.tagName === 'TEXTAREA' && val.length > 5000) {
+      showMsg($('comMsg'), 'El texto es demasiado largo (máx 5000 caracteres)', 'error');
+      el.focus();
+      return false;
+    }
+    if (el.id === 'comTelefono' && val && !/^[\d\s+\-()]*$/.test(val)) {
+      showMsg($('comMsg'), 'Teléfono solo debe contener números', 'error');
+      el.focus();
+      return false;
+    }
+  }
+  return true;
+}
+
+function showView(view) {
+  const views = ['inicio','auth','comunidad','gobierno','roleselect'];
+  views.forEach(v => {
+    const el = $(`view${v.charAt(0).toUpperCase()+v.slice(1)}`);
+    if (el) el.classList.toggle('hidden', v !== view);
+  });
+  currentView = view;
+  const navMap = { inicio: 'navInicio', auth: 'btnAuth', comunidad: 'navComunidad', gobierno: 'navGobierno' };
+  document.querySelectorAll('#navLinks button').forEach(b => b.classList.remove('nav-active'));
+  const activeBtn = $(navMap[view]);
+  if (activeBtn) activeBtn.classList.add('nav-active');
+  if (view === 'inicio') cargarEstadisticas();
+  if (view === 'comunidad') cargarComunidad();
+  if (view === 'gobierno') verificarAccesoGobierno();
+}
+
+function redirectAfterAuth() {
+  if (!userData || !userData.role) {
+    showView('roleselect');
+  } else {
+    showView('inicio');
+  }
+}
+
+function actualizarNav() {
+  const badge = $('userBadge');
+  const btnAuth = $('btnAuth');
+  const btnLogout = $('btnLogout');
+  const navCom = $('navComunidad');
+  const navGob = $('navGobierno');
+
+  if (token && userData) {
+    const roleLabel = userData.role === 'gobierno' ? 'Gobierno' : userData.role === 'comunidad' ? 'Comunidad' : 'Sin rol';
+    badge.textContent = `${userData.username}  (${roleLabel})`;
+    badge.classList.remove('hidden');
+    btnAuth.classList.add('hidden');
+    btnLogout.classList.remove('hidden');
+    navCom.classList.toggle('hidden', userData.role === 'gobierno');
+    navGob.classList.toggle('hidden', userData.role !== 'gobierno');
+    if (currentView === 'comunidad' && $('navComunidad')) $('navComunidad').classList.add('nav-active');
+    if (currentView === 'gobierno' && $('navGobierno')) $('navGobierno').classList.add('nav-active');
+  } else {
+    badge.classList.add('hidden');
+    btnAuth.classList.remove('hidden');
+    btnLogout.classList.add('hidden');
+    navCom.classList.add('hidden');
+    navGob.classList.add('hidden');
+  }
+}
+
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...opts.headers };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (opts.formData) {
+    delete headers['Content-Type'];
+    const res = await fetch(path, { method: opts.method || 'POST', headers, body: opts.formData });
+    return res.json();
+  }
+  const res = await fetch(path, {
+    method: opts.method || 'GET',
+    headers,
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  return res.json();
+}
+
+async function checkSession() {
+  if (!token) return;
+  const data = await api('/auth/status');
+  if (data.valid) {
+    userData = { username: data.username, role: data.role };
+    actualizarNav();
+  } else {
+    token = null;
+    localStorage.removeItem('comunichain_token');
+    userData = null;
+    actualizarNav();
+  }
+}
+
+async function register() {
+  hideMsg($('authMsg'));
+  const username = $('authUsername').value.trim();
+  if (!username) { showMsg($('authMsg'), 'Ingresa un nombre de usuario', 'error'); return; }
+  if (username.length < 3) { showMsg($('authMsg'), 'El nombre debe tener al menos 3 caracteres', 'error'); return; }
+  if (username.length > 100) { showMsg($('authMsg'), 'El nombre es demasiado largo (máx 100)', 'error'); return; }
+  if (!/^[a-zA-Z0-9_\-.]+$/.test(username)) { showMsg($('authMsg'), 'Solo letras, números, guiones y puntos', 'error'); return; }
+
+  const begin = await api('/auth/register/begin', { method: 'POST', body: { username } });
+  if (!begin.success) { showMsg($('authMsg'), begin.error, 'error'); return; }
+
+  try {
+    const cred = await SimpleWebAuthnBrowser.startRegistration(begin.options);
+    const complete = await api('/auth/register/complete', { method: 'POST', body: { username, credential: cred } });
+    if (complete.success) {
+      token = complete.token;
+      localStorage.setItem('comunichain_token', token);
+      userData = { username: complete.username, role: complete.role };
+      actualizarNav();
+      showMsg($('authMsg'), 'Smart Wallet conectada exitosamente!', 'success');
+      $('authUsername').value = '';
+      setTimeout(() => redirectAfterAuth(), 1000);
+    } else {
+      showMsg($('authMsg'), complete.error || 'Error al completar registro', 'error');
+    }
+  } catch (e) {
+    showMsg($('authMsg'), 'Registro cancelado o fallido: ' + e.message, 'error');
+  }
+}
+
+async function login() {
+  hideMsg($('authMsg'));
+  const username = $('authUsername').value.trim();
+  if (!username) { showMsg($('authMsg'), 'Ingresa tu nombre de usuario', 'error'); return; }
+
+  const begin = await api('/auth/login/begin', { method: 'POST', body: { username } });
+  if (!begin.success) { showMsg($('authMsg'), begin.error, 'error'); return; }
+
+  try {
+    const cred = await SimpleWebAuthnBrowser.startAuthentication(begin.options);
+    const complete = await api('/auth/login/complete', { method: 'POST', body: { username, credential: cred } });
+    if (complete.success) {
+      token = complete.token;
+      localStorage.setItem('comunichain_token', token);
+      userData = { username: complete.username, role: complete.role };
+      actualizarNav();
+      showMsg($('authMsg'), 'Sesión iniciada!', 'success');
+      $('authUsername').value = '';
+      setTimeout(() => redirectAfterAuth(), 1000);
+    } else {
+      showMsg($('authMsg'), complete.error || 'Error al autenticar', 'error');
+    }
+  } catch (e) {
+    showMsg($('authMsg'), 'Autenticación cancelada o fallida: ' + e.message, 'error');
+  }
+}
+
+async function logout() {
+  await api('/auth/logout', { method: 'POST' });
+  token = null;
+  localStorage.removeItem('comunichain_token');
+  userData = null;
+  actualizarNav();
+  showView('inicio');
+}
+
+async function cargarEstadisticas() {
+  const data = await api('/api/estadisticas');
+  if (data.success) {
+    const e = data.estadisticas;
+    $('heroStats').innerHTML = `
+      <div class="stat-item"><div class="num">${e.totalComunidades}</div><div class="label">Comunidades</div></div>
+      <div class="stat-item"><div class="num">${e.totalProyectos}</div><div class="label">Proyectos</div></div>
+      <div class="stat-item"><div class="num">$${e.totalFondeo.toFixed(0)}</div><div class="label">Fondeado</div></div>
+      <div class="stat-item"><div class="num">${e.transparencia}%</div><div class="label">Transparencia</div></div>
+    `;
+  }
+  const proy = await api('/api/proyectos');
+  if (proy.success) {
+    const container = $('proyectosRecientes');
+    container.innerHTML = proy.proyectos.slice(0, 3).map(p => `
+      <div class="card" onclick="verProyecto('${p.id}')" style="cursor:pointer;">
+        <h3>${p.nombre}</h3>
+        <p style="margin:4px 0;"><strong>${p.lugar}</strong></p>
+        <p>${p.descripcion.slice(0, 120)}${p.descripcion.length > 120 ? '...' : ''}</p>
+        <div style="margin-top:10px;">
+          <span class="badge badge-${p.estado === 'completado' ? 'completado' : p.estado === 'en_progreso' ? 'progreso' : 'pendiente'}">
+            ${p.estado === 'completado' ? 'Completado' : p.estado === 'en_progreso' ? 'En Progreso' : 'Pendiente'}
+          </span>
+          <span style="font-size:12px;color:#999;float:right;">${new Date(p.fechaCreacion).toLocaleDateString()}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+async function registrarComunidad(e) {
+  e.preventDefault();
+  hideMsg($('comMsg'));
+  const btn = e.target.querySelector('button[type="submit"]');
+  if (!validateForm(['comNombre', 'comDireccion', 'comDescripcion', 'comRepresentante', 'comTelefono'])) return;
+  btn.disabled = true; btn.textContent = 'Registrando...';
+  const data = await api('/api/comunidad/registrar', {
+    method: 'POST',
+    body: {
+      nombre: $('comNombre').value.trim(),
+      direccion: $('comDireccion').value.trim(),
+      descripcion: $('comDescripcion').value.trim(),
+      representante: $('comRepresentante').value.trim(),
+      telefono: $('comTelefono').value.trim()
+    }
+  });
+  btn.disabled = false; btn.textContent = 'Registrar Comunidad en Blockchain';
+  if (data.success) {
+    userData.role = 'comunidad';
+    actualizarNav();
+    showMsg($('comMsg'), 'Comunidad registrada en blockchain!', 'success');
+    $('formComunidad').reset();
+    setTimeout(() => cargarComunidad(), 1000);
+  } else {
+    showMsg($('comMsg'), data.error, 'error');
+  }
+}
+
+async function cargarComunidad() {
+  if (!token) { $('sinComunidad').classList.remove('hidden'); $('conComunidad').classList.add('hidden'); return; }
+  const data = await api('/api/comunidad/mi-perfil');
+  if (data.success) {
+    $('sinComunidad').classList.add('hidden');
+    $('conComunidad').classList.remove('hidden');
+    const c = data.comunidad;
+    $('comNombreDisplay').textContent = c.nombre;
+    $('comUbicacionDisplay').textContent = c.direccion || 'Sin ubicación registrada';
+    $('comPerfilCard').innerHTML = `
+      <p><strong>Nombre:</strong> ${c.nombre}</p>
+      <p><strong>Dirección:</strong> ${c.direccion || '-'}</p>
+      <p><strong>Descripción:</strong> ${c.descripcion || '-'}</p>
+      <p><strong>Representante:</strong> ${c.representante}</p>
+      <p><strong>Teléfono:</strong> ${c.telefono || '-'}</p>
+      <p><strong>Fecha de registro:</strong> ${new Date(c.fechaRegistro).toLocaleDateString()}</p>
+      <p><strong>Fondos recibidos:</strong> $${Number(c.fondosRecibidos).toFixed(2)}</p>
+      <p><strong>Proyectos:</strong> ${data.proyectos ? data.proyectos.length : 0}</p>
+    `;
+    cargarMisProyectos();
+    cargarFondeosComunidad();
+  } else {
+    $('sinComunidad').classList.remove('hidden');
+    $('conComunidad').classList.add('hidden');
+  }
+}
+
+async function cargarMisProyectos() {
+  const data = await api('/api/proyectos/mis-proyectos');
+  const container = $('misProyectos');
+  if (data.success && data.proyectos.length > 0) {
+    $('sinProyectosMsg').classList.add('hidden');
+    container.innerHTML = data.proyectos.map(p => {
+      const pct = p.fondeoRequerido > 0 ? Math.min(100, (p.fondeoRecibido / p.fondeoRequerido) * 100) : 0;
+      return `
+      <div class="card" onclick="verProyecto('${p.id}')" style="cursor:pointer;">
+        <div style="display:flex;justify-content:space-between;align-items:start;">
+          <h3>${p.nombre}</h3>
+          <span class="badge badge-${p.estado === 'completado' ? 'completado' : p.estado === 'en_progreso' ? 'progreso' : 'pendiente'}">
+            ${p.estado === 'completado' ? 'Completado' : p.estado === 'en_progreso' ? 'En Progreso' : 'Pendiente'}
+          </span>
+        </div>
+        <p style="margin:4px 0;">${p.lugar}</p>
+        <p>${p.descripcion.slice(0, 100)}${p.descripcion.length > 100 ? '...' : ''}</p>
+        <div class="progress-bar"><div class="fill" style="width:${pct}%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span>$${p.fondeoRecibido.toFixed(0)}</span>
+          <span>Meta: $${p.fondeoRequerido.toFixed(0)}</span>
+        </div>
+        ${p.fotos && p.fotos.length > 0 ? `<div style="margin-top:8px;font-size:12px;color:#999;">📸 ${p.fotos.length} foto(s)</div>` : ''}
+      </div>`;
+    }).join('');
+  } else {
+    $('sinProyectosMsg').classList.remove('hidden');
+    container.innerHTML = '';
+  }
+}
+
+async function cargarFondeosComunidad() {
+  // Show funding records from the community projects
+  const data = await api('/api/proyectos/mis-proyectos');
+  if (!data.success) return;
+  const allFondeos = [];
+  for (const p of data.proyectos) {
+    if (p.transacciones) {
+      p.transacciones.forEach(t => {
+        if (t.tipo === 'fondeo') {
+          const d = JSON.parse(t.datos);
+          allFondeos.push({ ...t, proyectoNombre: p.nombre, monto: d.monto, descripcion: d.descripcion });
+        }
+      });
+    }
+  }
+  const container = $('comFondeosList');
+  if (allFondeos.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">No hay fondeos recibidos aún.</div>';
+    return;
+  }
+  container.innerHTML = allFondeos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha)).map(f => `
+    <div class="transaccion-item">
+      <strong>${f.proyectoNombre}</strong> - $${f.monto.toFixed(2)}
+      <div>${f.descripcion || ''}</div>
+      <div class="meta">${new Date(f.fecha).toLocaleString()} | TX: <span class="tx-hash">${f.txHash}</span></div>
+    </div>
+  `).join('');
+}
+
+function comTab(tab, btn) {
+  document.querySelectorAll('#viewComunidad .tab-bar button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['proyectos','perfil','fondeos'].forEach(t => {
+    $(`comTab${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.toggle('hidden', t !== tab);
+  });
+}
+
+function showCrearProyecto() {
+  $('modalContent').innerHTML = `
+    <h2>Crear Nuevo Proyecto</h2>
+    <form id="formProyecto" onsubmit="crearProyecto(event)">
+      <div class="form-group">
+        <label>Nombre del proyecto *</label>
+        <input type="text" id="proyNombre" required placeholder="Ej: Rehabilitación de parque">
+      </div>
+      <div class="form-group">
+        <label>Lugar *</label>
+        <input type="text" id="proyLugar" required placeholder="Ej: Colonia Centro, Calle 5">
+      </div>
+      <div class="form-group">
+        <label>Descripción *</label>
+        <textarea id="proyDesc" rows="3" required placeholder="Describe el proyecto"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Objetivo *</label>
+        <textarea id="proyObj" rows="2" required placeholder="¿Qué se busca lograr?"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Fondeo requerido (USD) *</label>
+        <input type="number" id="proyFondeo" required min="1" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Fotos del proyecto</label>
+        <input type="file" id="proyFotos" multiple accept="image/*">
+      </div>
+      <button type="submit" class="btn btn-block">Crear Proyecto en Blockchain</button>
+    </form>
+    <div id="proyMsg" class="hidden" style="margin-top:12px;"></div>
+  `;
+  $('modalOverlay').classList.remove('hidden');
+}
+
+async function crearProyecto(e) {
+  e.preventDefault();
+  hideMsg($('proyMsg'));
+  const btn = e.target.querySelector('button[type="submit"]');
+  if (!validateForm(['proyNombre', 'proyLugar', 'proyDesc', 'proyObj', 'proyFondeo'])) return;
+  btn.disabled = true; btn.textContent = 'Creando...';
+  const formData = new FormData();
+  formData.append('nombre', $('proyNombre').value.trim());
+  formData.append('lugar', $('proyLugar').value.trim());
+  formData.append('descripcion', $('proyDesc').value.trim());
+  formData.append('objetivo', $('proyObj').value.trim());
+  formData.append('fondeoRequerido', $('proyFondeo').value);
+  const fotos = $('proyFotos').files;
+  for (let i = 0; i < fotos.length; i++) formData.append('fotos', fotos[i]);
+
+  const data = await api('/api/proyectos/crear', { method: 'POST', formData });
+  btn.disabled = false; btn.textContent = 'Crear Proyecto en Blockchain';
+  if (data.success) {
+    showMsg($('proyMsg'), `Proyecto creado! TX: ${data.txHash}`, 'success');
+    $('formProyecto').reset();
+    setTimeout(() => { cerrarModal(); cargarMisProyectos(); }, 1500);
+  } else {
+    showMsg($('proyMsg'), data.error, 'error');
+  }
+}
+
+async function verProyecto(id) {
+  const data = await api(`/api/proyectos/${id}`);
+  if (!data.success) return;
+  const p = data.proyecto;
+  const pct = p.fondeoRequerido > 0 ? Math.min(100, (p.fondeoRecibido / p.fondeoRequerido) * 100) : 0;
+  const estadoLabel = p.estado === 'completado' ? 'Completado' : p.estado === 'en_progreso' ? 'En Progreso' : 'Pendiente';
+
+  $('modalContent').innerHTML = `
+    <h2>${p.nombre}</h2>
+    <span class="badge badge-${p.estado === 'completado' ? 'completado' : p.estado === 'en_progreso' ? 'progreso' : 'pendiente'}">${estadoLabel}</span>
+    <p style="margin-top:12px;"><strong>📍 ${p.lugar}</strong></p>
+    <p style="margin-bottom:8px;"><strong>Comunidad:</strong> ${p.comunidadNombre}</p>
+    <p><strong>Descripción:</strong> ${p.descripcion}</p>
+    <p><strong>Objetivo:</strong> ${p.objetivo}</p>
+
+    <div style="margin:16px 0;">
+      <strong>Fondeo:</strong> $${p.fondeoRecibido.toFixed(2)} / $${p.fondeoRequerido.toFixed(2)}
+      <div class="progress-bar"><div class="fill" style="width:${pct}%"></div></div>
+    </div>
+
+    ${p.fotos && p.fotos.length > 0 ? `
+      <div>
+        <strong>Fotos del proyecto:</strong>
+        <div class="foto-grid">${p.fotos.map(f => `<img src="${f}" onclick="expandirFoto('${f}')" alt="Foto">`).join('')}</div>
+      </div>
+    ` : ''}
+
+    ${p.avances && p.avances.length > 0 ? `
+      <div style="margin-top:20px;">
+        <strong>Avances (${p.avances.length})</strong>
+        ${p.avances.map(a => `
+          <div class="card" style="padding:12px;margin:8px 0;">
+            <p>${a.descripcion}</p>
+            <div class="meta">${new Date(a.fecha).toLocaleString()} - por ${a.creadoPor}</div>
+            ${a.fotos && a.fotos.length > 0 ? `
+              <div class="foto-grid">${a.fotos.map(f => `<img src="${f}" onclick="expandirFoto('${f}')" alt="Avance">`).join('')}</div>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+
+    <div style="margin-top:20px;">
+      <strong>Transacciones en Blockchain</strong>
+      ${p.transacciones && p.transacciones.length > 0 ? p.transacciones.map(t => `
+        <div class="transaccion-item">
+          <strong>${t.tipo === 'creacion' ? 'Creación' : t.tipo === 'avance' ? 'Avance' : 'Fondeo'}</strong>
+          <div class="tx-hash">${t.txHash}</div>
+          <div class="meta">${new Date(t.fecha).toLocaleString()}</div>
+        </div>
+      `).join('') : '<div class="meta">Sin transacciones registradas</div>'}
+    </div>
+
+    ${token && userData?.role === 'comunidad' ? `
+      <div style="margin-top:20px;border-top:1px solid #eee;padding-top:20px;">
+        <h3>Agregar Avance</h3>
+        <form id="formAvance" onsubmit="agregarAvance('${p.id}', event)">
+          <div class="form-group">
+            <label>Descripción del avance</label>
+            <textarea id="avanceDesc" rows="2" placeholder="Describe el progreso"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Fotos del avance</label>
+            <input type="file" id="avanceFotos" multiple accept="image/*">
+          </div>
+          <button type="submit" class="btn btn-block">Registrar Avance</button>
+        </form>
+        <div id="avanceMsg" class="hidden" style="margin-top:8px;"></div>
+      </div>
+    ` : ''}
+
+    ${token && userData?.role === 'gobierno' && p.estado !== 'completado' ? `
+      <div style="margin-top:20px;border-top:1px solid #eee;padding-top:20px;">
+        <h3>Fondear este Proyecto</h3>
+        <form id="formFondear" onsubmit="fondearProyecto('${p.id}', event)">
+          <div class="form-group">
+            <label>Monto a fonder (USD)</label>
+            <input type="number" id="fondearMonto" required min="1" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <input type="text" id="fondearDesc" placeholder="Ej: Primer desembolso">
+          </div>
+          <button type="submit" class="btn btn-success btn-block">Fondear en Blockchain</button>
+        </form>
+        <div id="fondearMsg" class="hidden" style="margin-top:8px;"></div>
+      </div>
+    ` : ''}
+  `;
+  $('modalOverlay').classList.remove('hidden');
+}
+
+async function agregarAvance(proyectoId, e) {
+  e.preventDefault();
+  hideMsg($('avanceMsg'));
+  const btn = e.target.querySelector('button[type="submit"]');
+  if (!validateForm(['avanceDesc'])) return;
+  btn.disabled = true; btn.textContent = 'Registrando...';
+  const formData = new FormData();
+  formData.append('descripcion', $('avanceDesc').value.trim());
+  const fotos = $('avanceFotos').files;
+  for (let i = 0; i < fotos.length; i++) formData.append('fotos', fotos[i]);
+
+  const data = await api(`/api/proyectos/${proyectoId}/avances`, { method: 'POST', formData });
+  btn.disabled = false; btn.textContent = 'Registrar Avance';
+  if (data.success) {
+    showMsg($('avanceMsg'), `Avance registrado! TX: ${data.txHash}`, 'success');
+    $('formAvance').reset();
+    setTimeout(() => verProyecto(proyectoId), 1500);
+  } else {
+    showMsg($('avanceMsg'), data.error, 'error');
+  }
+}
+
+async function fondearProyecto(proyectoId, e) {
+  e.preventDefault();
+  hideMsg($('fondearMsg'));
+  const btn = e.target.querySelector('button[type="submit"]');
+  const monto = parseFloat($('fondearMonto').value);
+  if (!monto || monto <= 0) {
+    showMsg($('fondearMsg'), 'Ingresa un monto válido mayor a 0', 'error');
+    $('fondearMonto').focus();
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Fondeando...';
+  const data = await api('/api/gobierno/fondear', {
+    method: 'POST',
+    body: {
+      proyectoId,
+      monto,
+      descripcion: $('fondearDesc').value.trim() || 'Fondeo gubernamental'
+    }
+  });
+  btn.disabled = false; btn.textContent = 'Fondear en Blockchain';
+  if (data.success) {
+    showMsg($('fondearMsg'), `Fondeo exitoso! TX: ${data.fondeo.txHash}`, 'success');
+    setTimeout(() => verProyecto(proyectoId), 1500);
+  } else {
+    showMsg($('fondearMsg'), data.error, 'error');
+  }
+}
+
+function expandirFoto(src) { $('fotoExpandida').src = src; $('modalFoto').classList.remove('hidden'); }
+function cerrarModalFoto() { $('modalFoto').classList.add('hidden'); }
+function cerrarModal() { $('modalOverlay').classList.add('hidden'); }
+
+// Gobierno
+async function verificarAccesoGobierno() {
+  if (!token || !userData) {
+    $('gobiernoNoAuth').classList.remove('hidden');
+    $('gobiernoAuth').classList.add('hidden');
+    return;
+  }
+  if (userData.role === 'gobierno') {
+    $('gobiernoNoAuth').classList.add('hidden');
+    $('gobiernoAuth').classList.remove('hidden');
+    cargarGobiernoProyectos();
+    cargarGobiernoFondeos();
+    cargarGobiernoEstadisticas();
+  } else if (userData.role === 'comunidad') {
+    $('gobiernoNoAuth').classList.remove('hidden');
+    $('gobiernoNoAuth').innerHTML = `
+      <div class="card" style="max-width:500px;margin:40px auto;text-align:center;">
+        <div style="font-size:48px;margin-bottom:12px;">&#x26A0;&#xFE0F;</div>
+        <h3>Acceso restringido</h3>
+        <p style="margin:12px 0;color:#666;">Tu cuenta está registrada como comunidad. Para acceder al panel de gobierno necesitas otra cuenta.</p>
+        <button class="btn" onclick="showView('inicio')">Volver al inicio</button>
+      </div>
+    `;
+    $('gobiernoAuth').classList.add('hidden');
+  } else {
+    $('gobiernoNoAuth').classList.remove('hidden');
+    $('gobiernoAuth').classList.add('hidden');
+  }
+}
+
+async function registrarGobierno() {
+  const data = await api('/api/gobierno/registrar', { method: 'POST' });
+  if (data.success) {
+    userData.role = 'gobierno';
+    actualizarNav();
+    showView('gobierno');
+  } else {
+    if (currentView === 'roleselect') {
+      const el = document.querySelector('#viewRoleselect .alert-error') || (() => {
+        const d = document.createElement('div');
+        d.className = 'alert alert-error';
+        document.querySelector('#viewRoleselect .grid-2').before(d);
+        return d;
+      })();
+      el.textContent = data.error;
+    } else {
+      showMsg($('gobMsg'), data.error, 'error');
+    }
+  }
+}
+
+async function cargarGobiernoProyectos() {
+  const data = await api('/api/gobierno/proyectos');
+  if (!data.success) return;
+  const container = $('gobProyectosList');
+  container.innerHTML = data.proyectos.map(p => {
+    const pct = p.fondeoRequerido > 0 ? Math.min(100, (p.fondeoRecibido / p.fondeoRequerido) * 100) : 0;
+    return `
+    <div class="card gobierno-proyecto-card" onclick="verProyecto('${p.id}')" style="cursor:pointer;">
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <h3>${p.nombre}</h3>
+        <span class="badge badge-${p.estado === 'completado' ? 'completado' : p.estado === 'en_progreso' ? 'progreso' : 'pendiente'}">
+          ${p.estado === 'completado' ? 'Completado' : p.estado === 'en_progreso' ? 'En Progreso' : 'Pendiente'}
+        </span>
+      </div>
+      <p style="font-size:13px;color:#4facfe;">${p.comunidadNombre}</p>
+      <p style="margin:4px 0;">📍 ${p.lugar}</p>
+      <p>${p.descripcion.slice(0, 100)}${p.descripcion.length > 100 ? '...' : ''}</p>
+      <div class="progress-bar"><div class="fill" style="width:${pct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;">
+        <span>Fondeado: $${p.fondeoRecibido.toFixed(0)}</span>
+        <span>Meta: $${p.fondeoRequerido.toFixed(0)}</span>
+      </div>
+      <div class="meta">Creado: ${new Date(p.fechaCreacion).toLocaleDateString()}</div>
+    </div>`;
+  }).join('');
+}
+
+async function cargarGobiernoFondeos() {
+  const data = await api('/api/gobierno/fondeos');
+  if (!data.success) return;
+  const container = $('gobFondeosList');
+  if (data.fondeos.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">No hay fondeos registrados.</div>';
+    return;
+  }
+  container.innerHTML = data.fondeos.map(f => `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;">
+        <div>
+          <strong>${f.proyectoNombre}</strong>
+          <span style="color:#4facfe;font-size:13px;">${f.comunidadNombre}</span>
+        </div>
+        <div style="font-size:20px;font-weight:700;color:#2ed573;">+$${f.monto.toFixed(2)}</div>
+      </div>
+      <p style="font-size:13px;color:#666;margin:4px 0;">${f.descripcion}</p>
+      <div class="meta">${new Date(f.fecha).toLocaleString()} | TX: <span class="tx-hash">${f.txHash}</span></div>
+    </div>
+  `).join('');
+}
+
+async function cargarGobiernoEstadisticas() {
+  const data = await api('/api/estadisticas');
+  if (!data.success) return;
+  const e = data.estadisticas;
+  $('gobEstadisticas').innerHTML = `
+    <div class="card" style="text-align:center;padding:30px;">
+      <div style="font-size:40px;">🏘️</div>
+      <div style="font-size:28px;font-weight:700;">${e.totalComunidades}</div>
+      <div style="color:#666;">Comunidades registradas</div>
+    </div>
+    <div class="card" style="text-align:center;padding:30px;">
+      <div style="font-size:40px;">📋</div>
+      <div style="font-size:28px;font-weight:700;">${e.totalProyectos}</div>
+      <div style="color:#666;">Proyectos creados</div>
+    </div>
+    <div class="card" style="text-align:center;padding:30px;">
+      <div style="font-size:40px;">💰</div>
+      <div style="font-size:28px;font-weight:700;">$${e.totalFondeo.toFixed(2)}</div>
+      <div style="color:#666;">Total fondeado</div>
+    </div>
+    <div class="card" style="text-align:center;padding:30px;">
+      <div style="font-size:40px;">✅</div>
+      <div style="font-size:28px;font-weight:700;">${e.completados}</div>
+      <div style="color:#666;">Proyectos completados</div>
+    </div>
+  `;
+}
+
+function gobTab(tab, btn) {
+  document.querySelectorAll('#viewGobierno .tab-bar button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['proyectos','fondeos','estadisticas'].forEach(t => {
+    $(`gobTab${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.toggle('hidden', t !== tab);
+  });
+  if (tab === 'proyectos') cargarGobiernoProyectos();
+  if (tab === 'fondeos') cargarGobiernoFondeos();
+  if (tab === 'estadisticas') cargarGobiernoEstadisticas();
+}
+
+checkSession().then(() => {
+  actualizarNav();
+  if (token && userData && !userData.role) {
+    showView('roleselect');
+  } else {
+    cargarEstadisticas();
+  }
+});
+</script>
+</body>
+</html>
