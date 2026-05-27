@@ -15,17 +15,22 @@
 
     nav {
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      color: #fff; padding: 16px 0; position: sticky; top: 0; z-index: 100;
+      color: #fff; padding: 12px 0; position: sticky; top: 0; z-index: 100;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     nav .container { display: flex; justify-content: space-between; align-items: center; }
-    nav .logo { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    nav .logo { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
     nav .logo span { color: #4facfe; }
-    nav .nav-links { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .nav-hamburger {
+      display: none; background: none; border: none; color: #fff; font-size: 26px;
+      cursor: pointer; padding: 4px; line-height: 1;
+    }
+    nav .nav-links { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    nav .nav-links.open { display: flex; }
     nav .nav-links button {
       background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);
-      padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 14px;
-      transition: all .2s;
+      padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 13px;
+      transition: all .2s; white-space: nowrap;
     }
     nav .nav-links button:hover { background: rgba(255,255,255,0.2); }
     nav .nav-links button.primary { background: #4facfe; border-color: #4facfe; color: #fff; }
@@ -163,11 +168,41 @@
 
     @media (max-width: 768px) {
       .grid-2 { grid-template-columns: 1fr; }
-      .hero h1 { font-size: 28px; }
-      nav .nav-links { gap: 6px; }
-      nav .nav-links button { font-size: 12px; padding: 6px 12px; }
-      .hero .stats { gap: 20px; }
-      .hero .stat-item .num { font-size: 24px; }
+      .hero { padding: 50px 0 40px; }
+      .hero h1 { font-size: 26px; }
+      .hero p { font-size: 15px; }
+      nav .nav-links button { font-size: 12px; padding: 5px 10px; }
+      .hero .stats { gap: 16px; }
+      .hero .stat-item .num { font-size: 22px; }
+      .section-title { font-size: 22px; }
+      .tab-bar button { font-size: 12px; padding: 8px 6px; }
+    }
+
+    @media (max-width: 480px) {
+      .container { padding: 0 12px; }
+      .section { padding: 32px 0; }
+      .hero h1 { font-size: 21px; }
+      .hero p { font-size: 14px; }
+      .nav-hamburger { display: block; }
+      nav .nav-links {
+        display: none; position: absolute; top: 100%; left: 0; right: 0;
+        background: #16213e; flex-direction: column; padding: 12px; gap: 6px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      }
+      nav .nav-links button { width: 100%; font-size: 14px; padding: 10px; text-align: center; }
+      nav .nav-links .user-badge { width: 100%; text-align: center; }
+      .hero .stats { gap: 12px; }
+      .hero .stat-item { flex: 0 0 45%; }
+      .hero .stat-item .num { font-size: 20px; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .card { padding: 16px; }
+      .modal { padding: 20px; }
+      .auth-panel .bio-btn { font-size: 14px; padding: 14px; }
+      .tab-bar { gap: 2px; padding: 3px; }
+      .tab-bar button { font-size: 11px; padding: 7px 4px; }
+      .gobierno-proyecto-card { padding-left: 10px; }
+      .foto-grid { grid-template-columns: repeat(2, 1fr); }
+      .foto-grid img { height: 90px; }
     }
 
     .loading {
@@ -196,6 +231,7 @@
 <nav>
   <div class="container">
     <div class="logo">&#x26A1; Comun<span>ichain</span></div>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleNav()" aria-label="Menú">&#x2630;</button>
     <div class="nav-links" id="navLinks">
       <button id="navInicio" class="nav-active" onclick="showView('inicio')">Inicio</button>
       <button id="navComunidad" class="hidden" onclick="showView('comunidad')">Mi Comunidad</button>
@@ -427,6 +463,10 @@ let currentView = 'inicio';
 
 function $(id) { return document.getElementById(id); }
 
+function toggleNav() {
+  document.getElementById('navLinks').classList.toggle('open');
+}
+
 function showMsg(el, msg, type) {
   el.textContent = msg;
   el.className = 'alert alert-' + type + ' hidden';
@@ -471,6 +511,7 @@ function validateForm(fields) {
 }
 
 function showView(view) {
+  document.getElementById('navLinks').classList.remove('open');
   const views = ['inicio','auth','comunidad','gobierno','roleselect'];
   views.forEach(v => {
     const el = $(`view${v.charAt(0).toUpperCase()+v.slice(1)}`);

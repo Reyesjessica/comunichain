@@ -37,10 +37,24 @@ const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 app.use('/uploads', express.static(uploadsDir));
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
-});
+const storage = multer.memoryStorage();
+
+async function saveUploadedFiles(files) {
+  if (!files || files.length === 0) return [];
+  if (process.env.VERCEL) {
+    const { put } = require('@vercel/blob');
+    return Promise.all(files.map(async (file) => {
+      const { url } = await put(`${Date.now()}-${file.originalname}`, file.buffer, { access: 'public' });
+      return url;
+    }));
+  } else {
+    return files.map(file => {
+      const filename = `${Date.now()}-${file.originalname}`;
+      fs.writeFileSync(path.join(uploadsDir, filename), file.buffer);
+      return `/uploads/${filename}`;
+    });
+  }
+}
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -70,7 +84,10 @@ async function requireAuth(req, res, next) {
 const rpID = RP_ID;
 
 function getOrigin() {
-  return RP_ID === 'localhost' ? `http://localhost:${PORT}` : `https://${RP_ID}`;
+  if (RP_ID === 'localhost') return `http://localhost:${PORT}`;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL;
+  return `https://${RP_ID}`;
 }
 
 function wrapValidation(fn) {
@@ -326,7 +343,7 @@ app.post('/api/proyectos/crear', requireAuth, upload.array('fotos', 10), async (
     const comunidad = await db.getCommunity(user.comunidad_id);
     if (!comunidad) return res.status(400).json({ error: 'Comunidad no encontrada', success: false });
 
-    const fotos = req.files ? req.files.map(f => `/uploads/${f.filename}`) : [];
+    const fotos = await saveUploadedFiles(req.files);
     const id = uuidv4();
 
     const proyecto = {
@@ -412,7 +429,7 @@ app.post('/api/proyectos/:id/avances', requireAuth, upload.array('fotos', 10), a
     const error = validateAvance(req.body);
     if (error) return res.status(400).json({ error, success: false });
 
-    const fotos = req.files ? req.files.map(f => `/uploads/${f.filename}`) : [];
+    const fotos = await saveUploadedFiles(req.files);
     const avance = {
       id: uuidv4(),
       projectId: req.params.id,
@@ -563,21 +580,25 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message || 'Error interno', success: false });
 });
 
-app.listen(PORT, '0.0.0.0', async () => {
-  console.log('==================================================');
-  console.log('  Comunichain DApp - Transparencia Comunitaria');
-  console.log('==================================================');
-  console.log(`  Servidor: http://localhost:${PORT}`);
-  console.log(`  Autenticación: Passkeys (WebAuthn)`);
-  console.log(`  Red: Stellar Soroban Testnet`);
-  console.log(`  Contrato: ${process.env.CONTRACT_ID || 'no configurado'}`);
-  console.log('==================================================');
+if (!process.env.VERCEL) {
+  app.listen(PORT, '0.0.0.0', async () => {
+    console.log('==================================================');
+    console.log('  Comunichain DApp - Transparencia Comunitaria');
+    console.log('==================================================');
+    console.log(`  Servidor: http://localhost:${PORT}`);
+    console.log(`  Autenticación: Passkeys (WebAuthn)`);
+    console.log(`  Red: Stellar Soroban Testnet`);
+    console.log(`  Contrato: ${process.env.CONTRACT_ID || 'no configurado'}`);
+    console.log('==================================================');
 
-  const initialized = await db.initialize();
-  if (initialized) {
-    console.log('  Base de datos: MySQL lista');
-  } else {
-    console.log('  Base de datos: MySQL NO disponible - revisa .env');
-  }
-  console.log('==================================================');
-});
+    const initialized = await db.initialize();
+    if (initialized) {
+      console.log('  Base de datos: MySQL lista');
+    } else {
+      console.log('  Base de datos: MySQL NO disponible - revisa .env');
+    }
+    console.log('==================================================');
+  });
+}
+
+module.exports = app;

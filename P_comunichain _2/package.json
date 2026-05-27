@@ -6,11 +6,13 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "test": "echo \"No tests yet\" && exit 0"
+    "test": "echo \"No tests yet\" && exit 0",
+    "build": "echo 'No build step needed'"
   },
   "dependencies": {
     "@simplewebauthn/server": "^9.0.0",
     "@stellar/stellar-sdk": "^15.0.0",
+    "@vercel/blob": "^2.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.0",
     "express": "^4.22.0",
