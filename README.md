@@ -38,3 +38,60 @@ COMUNICHAIN permite:
 - Dar seguimiento en tiempo real
 
 ---
+## Arquitectura del Sistema
+
+Ciudadano
+    ↓
+Frontend React
+    ↓
+Módulo de Gestión
+    ↓
+Soroban / Stellar
+    ↓
+Registro Transparente
+
+---
+## Tecnologías Utilizadas
+
+- React
+- Vite
+- GitHub
+- Soroban
+- Stellar
+
+---
+## Instalación
+
+Clonar repositorio:
+
+```bash
+git clone URL_DEL_REPOSITORIO
+```
+
+Entrar al proyecto:
+
+```bash
+cd comunichain
+```
+
+Instalar dependencias:
+
+```bash
+npm install
+```
+
+Ejecutar proyecto:
+
+```bash
+npm run dev
+```
+
+---
+## Funcionalidades
+
+- Registro de proyectos
+- Gestión de financiamiento
+- Evidencias comunitarias
+- Transparencia pública
+- Seguimiento de avances
+
