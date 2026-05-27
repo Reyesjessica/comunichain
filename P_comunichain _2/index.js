@@ -83,9 +83,9 @@ async function requireAuth(req, res, next) {
 
 const rpID = RP_ID;
 
-function getOrigin() {
+function getOrigin(req) {
   if (RP_ID === 'localhost') return `http://localhost:${PORT}`;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  if (req) return `${req.protocol}://${req.get('host')}`;
   if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL;
   return `https://${RP_ID}`;
 }
@@ -144,7 +144,7 @@ app.post('/auth/register/complete', async (req, res) => {
     const verification = await verifyRegistrationResponse({
       response: credential,
       expectedChallenge,
-      expectedOrigin: getOrigin(),
+      expectedOrigin: getOrigin(req),
       expectedRPID: rpID,
     });
 
@@ -217,7 +217,7 @@ app.post('/auth/login/complete', async (req, res) => {
       const result = await verifyAuthenticationResponse({
         response: credential,
         expectedChallenge,
-        expectedOrigin: getOrigin(),
+        expectedOrigin: getOrigin(req),
         expectedRPID: rpID,
         authenticator: {
           credentialID: cred.credentialID,
