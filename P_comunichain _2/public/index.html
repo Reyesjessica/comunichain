@@ -774,30 +774,17 @@ async function cargarMisProyectos() {
 }
 
 async function cargarFondeosComunidad() {
-  // Show funding records from the community projects
-  const data = await api('/api/proyectos/mis-proyectos');
-  if (!data.success) return;
-  const allFondeos = [];
-  for (const p of data.proyectos) {
-    if (p.transacciones) {
-      p.transacciones.forEach(t => {
-        if (t.tipo === 'fondeo') {
-          const d = JSON.parse(t.datos);
-          allFondeos.push({ ...t, proyectoNombre: p.nombre, monto: d.monto, descripcion: d.descripcion });
-        }
-      });
-    }
-  }
+  const data = await api('/api/comunidad/fondeos');
   const container = $('comFondeosList');
-  if (allFondeos.length === 0) {
+  if (!data.success || !data.fondeos || data.fondeos.length === 0) {
     container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">No hay fondeos recibidos aún.</div>';
     return;
   }
-  container.innerHTML = allFondeos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha)).map(f => `
+  container.innerHTML = data.fondeos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).map(f => `
     <div class="transaccion-item">
-      <strong>${f.proyectoNombre}</strong> - $${f.monto.toFixed(2)}
+      <strong>${f.proyectoNombre}</strong> - $${Number(f.monto).toFixed(2)}
       <div>${f.descripcion || ''}</div>
-      <div class="meta">${new Date(f.fecha).toLocaleString()} | TX: <span class="tx-hash">${f.txHash}</span></div>
+      <div class="meta">${new Date(f.fecha).toLocaleString()} | TX: <span class="tx-hash">${f.txHash || 'N/A'}</span></div>
     </div>
   `).join('');
 }
@@ -808,6 +795,8 @@ function comTab(tab, btn) {
   ['proyectos','perfil','fondeos'].forEach(t => {
     $(`comTab${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.toggle('hidden', t !== tab);
   });
+  if (tab === 'proyectos') cargarMisProyectos();
+  if (tab === 'fondeos') cargarFondeosComunidad();
 }
 
 function showCrearProyecto() {

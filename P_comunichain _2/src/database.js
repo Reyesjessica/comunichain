@@ -261,6 +261,7 @@ async function getProject(id) {
   const [fotos] = await pool.query('SELECT url FROM project_photos WHERE project_id = ?', [id]);
   const [avances] = await pool.query('SELECT * FROM avances WHERE project_id = ? ORDER BY fecha DESC', [id]);
   const [txs] = await pool.query('SELECT * FROM transactions WHERE project_id = ? ORDER BY fecha DESC', [id]);
+  const [cRows] = await pool.query('SELECT nombre FROM communities WHERE id = ?', [p.comunidad_id]);
   const avancesList = [];
   for (const a of avances) {
     const [aFotos] = await pool.query('SELECT url FROM avance_photos WHERE avance_id = ?', [a.id]);
@@ -281,6 +282,7 @@ async function getProject(id) {
     fondeoRequerido: Number(p.fondeo_requerido),
     fondeoRecibido: Number(p.fondeo_recibido),
     comunidadId: p.comunidad_id,
+    comunidadNombre: cRows[0]?.nombre || '',
     creadoPor: p.creado_por,
     estado: p.estado,
     fechaCreacion: p.fecha_creacion,
@@ -397,12 +399,24 @@ async function saveFundingRecord(record) {
 }
 
 async function getFundingRecords(proyectoId) {
+  let rows;
   if (proyectoId) {
-    const [rows] = await pool.query('SELECT * FROM funding_records WHERE proyecto_id = ? ORDER BY fecha DESC', [proyectoId]);
-    return rows;
+    [rows] = await pool.query('SELECT * FROM funding_records WHERE proyecto_id = ? ORDER BY fecha DESC', [proyectoId]);
+  } else {
+    [rows] = await pool.query('SELECT * FROM funding_records ORDER BY fecha DESC');
   }
-  const [rows] = await pool.query('SELECT * FROM funding_records ORDER BY fecha DESC');
-  return rows;
+  return rows.map(r => ({
+    id: r.id,
+    proyectoId: r.proyecto_id,
+    proyectoNombre: r.proyecto_nombre,
+    comunidadId: r.comunidad_id,
+    comunidadNombre: r.comunidad_nombre,
+    monto: Number(r.monto),
+    descripcion: r.descripcion,
+    txHash: r.tx_hash,
+    fondeadoPor: r.fondeado_por,
+    fecha: r.fecha,
+  }));
 }
 
 async function getAllFundingRecords() {

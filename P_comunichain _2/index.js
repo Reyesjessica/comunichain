@@ -334,6 +334,18 @@ app.get('/api/comunidad/:id', async (req, res) => {
   res.json({ comunidad, success: true });
 });
 
+app.get('/api/comunidad/fondeos', requireAuth, async (req, res) => {
+  try {
+    const user = await db.getUser(req.user.username);
+    if (!user.comunidad_id) return res.json({ fondeos: [], success: true });
+    const records = await db.getFundingRecords();
+    const misFondeos = records.filter(r => r.comunidad_id === user.comunidad_id);
+    res.json({ fondeos: misFondeos, success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message, success: false });
+  }
+});
+
 app.post('/api/proyectos/crear', requireAuth, upload.array('fotos', 10), async (req, res) => {
   try {
     const error = validateProyecto(req.body);
