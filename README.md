@@ -31,26 +31,19 @@ COMUNICHAIN permite:
 
 ---
 
-- Registrar proyectos comunitarios
-- Gestionar financiamiento
-- Mostrar evidencias de avance
-- Garantizar transparencia
-- Dar seguimiento en tiempo real
-
----
 ## Arquitectura del Sistema
 
+```txt
 Ciudadano
-    ↓
+   ↓
 Frontend React
-    ↓
+   ↓
 Módulo de Gestión
-    ↓
+   ↓
 Soroban / Stellar
-    ↓
+   ↓
 Registro Transparente
-
----
+```
 ## Tecnologías Utilizadas
 
 - React
@@ -95,3 +88,11 @@ npm run dev
 - Transparencia pública
 - Seguimiento de avances
 
+## Integrantes
+- Jessica Reyes Rosario
+- Antonia María Santos García
+- Cuevas López Ivonne Aylin
+- Karen García García
+
+  ## Licencia
+-Este proyecto está bajo la licencia MIT.
