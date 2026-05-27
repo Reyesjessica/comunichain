@@ -593,6 +593,14 @@ async function checkSession() {
 
 async function register() {
   hideMsg($('authMsg'));
+
+  // Si ya hay sesión activa, cerrarla primero para evitar que el token nuevo
+  // se sobreescriba en localStorage y afecte otras pestañas/usuarios
+  if (token) {
+    await logout();
+    hideMsg($('authMsg'));
+  }
+
   const username = $('authUsername').value.trim();
   if (!username) { showMsg($('authMsg'), 'Ingresa un nombre de usuario', 'error'); return; }
   if (username.length < 3) { showMsg($('authMsg'), 'El nombre debe tener al menos 3 caracteres', 'error'); return; }
@@ -623,6 +631,12 @@ async function register() {
 
 async function login() {
   hideMsg($('authMsg'));
+
+  if (token) {
+    await logout();
+    hideMsg($('authMsg'));
+  }
+
   const username = $('authUsername').value.trim();
   if (!username) { showMsg($('authMsg'), 'Ingresa tu nombre de usuario', 'error'); return; }
 
