@@ -29,6 +29,7 @@ const PORT = process.env.PORT || 3000;
 const RP_ID = process.env.RP_ID || 'localhost';
 const RP_NAME = 'Comunichain';
 
+app.set('trust proxy', true);
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -85,7 +86,10 @@ const rpID = RP_ID;
 
 function getOrigin(req) {
   if (RP_ID === 'localhost') return `http://localhost:${PORT}`;
-  if (req) return `${req.protocol}://${req.get('host')}`;
+  if (req) {
+    const proto = req.get('x-forwarded-proto') || req.protocol;
+    return `${proto}://${req.get('host')}`;
+  }
   if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL;
   return `https://${RP_ID}`;
 }
