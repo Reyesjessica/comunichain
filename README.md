@@ -58,7 +58,7 @@ Registro Transparente
 Clonar repositorio:
 
 ```bash
-git clone URL_DEL_REPOSITORIO
+git clone https://github.com/Reyesjessica/comunichain.git
 ```
 
 Entrar al proyecto:
