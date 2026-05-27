@@ -1,6 +1,16 @@
 const db = require('../src/database');
 const app = require('../index');
 
-db.initialize().catch(err => console.error('DB init error:', err.message));
+let initialized = false;
 
-module.exports = app;
+module.exports = async (req, res) => {
+  if (!initialized) {
+    try {
+      await db.initialize();
+      initialized = true;
+    } catch (err) {
+      console.error('DB init error:', err.message);
+    }
+  }
+  app(req, res);
+};
