@@ -664,8 +664,8 @@ async function cargarEstadisticas() {
     $('heroStats').innerHTML = `
       <div class="stat-item"><div class="num">${e.totalComunidades}</div><div class="label">Comunidades</div></div>
       <div class="stat-item"><div class="num">${e.totalProyectos}</div><div class="label">Proyectos</div></div>
-      <div class="stat-item"><div class="num">$${e.totalFondeo.toFixed(0)}</div><div class="label">Fondeado</div></div>
-      <div class="stat-item"><div class="num">${e.transparencia}%</div><div class="label">Transparencia</div></div>
+      <div class="stat-item"><div class="num">$${Number(e.totalFondeo || 0).toFixed(0)}</div><div class="label">Fondeado</div></div>
+      <div class="stat-item"><div class="num">${e.transparencia || 0}%</div><div class="label">Transparencia</div></div>
     `;
   }
   const proy = await api('/api/proyectos');
@@ -784,7 +784,7 @@ async function cargarFondeosComunidad() {
     <div class="transaccion-item">
       <strong>${f.proyectoNombre}</strong> - $${Number(f.monto).toFixed(2)}
       <div>${f.descripcion || ''}</div>
-      <div class="meta">${new Date(f.fecha).toLocaleString()} | TX: <span class="tx-hash">${f.txHash || 'N/A'}</span></div>
+      <div class="meta">${f.fecha ? new Date(f.fecha).toLocaleString() : '—'} | TX: <span class="tx-hash">${f.txHash || 'N/A'}</span></div>
     </div>
   `).join('');
 }
@@ -871,12 +871,12 @@ async function verProyecto(id) {
     <h2>${p.nombre}</h2>
     <span class="badge badge-${p.estado === 'completado' ? 'completado' : p.estado === 'en_progreso' ? 'progreso' : 'pendiente'}">${estadoLabel}</span>
     <p style="margin-top:12px;"><strong>📍 ${p.lugar}</strong></p>
-    <p style="margin-bottom:8px;"><strong>Comunidad:</strong> ${p.comunidadNombre}</p>
-    <p><strong>Descripción:</strong> ${p.descripcion}</p>
-    <p><strong>Objetivo:</strong> ${p.objetivo}</p>
+    <p style="margin-bottom:8px;"><strong>Comunidad:</strong> ${p.comunidadNombre || ''}</p>
+    <p><strong>Descripción:</strong> ${p.descripcion || ''}</p>
+    <p><strong>Objetivo:</strong> ${p.objetivo || ''}</p>
 
     <div style="margin:16px 0;">
-      <strong>Fondeo:</strong> $${p.fondeoRecibido.toFixed(2)} / $${p.fondeoRequerido.toFixed(2)}
+      <strong>Fondeo:</strong> $${Number(p.fondeoRecibido || 0).toFixed(2)} / $${Number(p.fondeoRequerido || 0).toFixed(2)}
       <div class="progress-bar"><div class="fill" style="width:${pct}%"></div></div>
     </div>
 
@@ -892,8 +892,8 @@ async function verProyecto(id) {
         <strong>Avances (${p.avances.length})</strong>
         ${p.avances.map(a => `
           <div class="card" style="padding:12px;margin:8px 0;">
-            <p>${a.descripcion}</p>
-            <div class="meta">${new Date(a.fecha).toLocaleString()} - por ${a.creadoPor}</div>
+            <p>${a.descripcion || ''}</p>
+            <div class="meta">${a.fecha ? new Date(a.fecha).toLocaleString() : '—'} - por ${a.creadoPor || '—'}</div>
             ${a.fotos && a.fotos.length > 0 ? `
               <div class="foto-grid">${a.fotos.map(f => `<img src="${f}" onclick="expandirFoto('${f}')" alt="Avance">`).join('')}</div>
             ` : ''}
@@ -907,8 +907,8 @@ async function verProyecto(id) {
       ${p.transacciones && p.transacciones.length > 0 ? p.transacciones.map(t => `
         <div class="transaccion-item">
           <strong>${t.tipo === 'creacion' ? 'Creación' : t.tipo === 'avance' ? 'Avance' : 'Fondeo'}</strong>
-          <div class="tx-hash">${t.txHash}</div>
-          <div class="meta">${new Date(t.fecha).toLocaleString()}</div>
+          <div class="tx-hash">${t.txHash || '—'}</div>
+          <div class="meta">${t.fecha ? new Date(t.fecha).toLocaleString() : '—'}</div>
         </div>
       `).join('') : '<div class="meta">Sin transacciones registradas</div>'}
     </div>
@@ -1088,7 +1088,7 @@ async function cargarGobiernoFondeos() {
   const data = await api('/api/gobierno/fondeos');
   if (!data.success) return;
   const container = $('gobFondeosList');
-  if (data.fondeos.length === 0) {
+  if (!data.fondeos || data.fondeos.length === 0) {
     container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">No hay fondeos registrados.</div>';
     return;
   }
@@ -1097,12 +1097,12 @@ async function cargarGobiernoFondeos() {
       <div style="display:flex;justify-content:space-between;">
         <div>
           <strong>${f.proyectoNombre}</strong>
-          <span style="color:#4facfe;font-size:13px;">${f.comunidadNombre}</span>
+          <span style="color:#4facfe;font-size:13px;">${f.comunidadNombre || ''}</span>
         </div>
-        <div style="font-size:20px;font-weight:700;color:#2ed573;">+$${f.monto.toFixed(2)}</div>
+        <div style="font-size:20px;font-weight:700;color:#2ed573;">+$${Number(f.monto).toFixed(2)}</div>
       </div>
-      <p style="font-size:13px;color:#666;margin:4px 0;">${f.descripcion}</p>
-      <div class="meta">${new Date(f.fecha).toLocaleString()} | TX: <span class="tx-hash">${f.txHash}</span></div>
+      <p style="font-size:13px;color:#666;margin:4px 0;">${f.descripcion || ''}</p>
+      <div class="meta">${f.fecha ? new Date(f.fecha).toLocaleString() : '—'} | TX: <span class="tx-hash">${f.txHash || 'N/A'}</span></div>
     </div>
   `).join('');
 }
