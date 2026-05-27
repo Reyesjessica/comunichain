@@ -19,5 +19,8 @@
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.22.3",
     "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "vercel": "^54.5.0"
   }
 }
